@@ -7,9 +7,9 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/currantlabs/ble"
-	"github.com/currantlabs/ble/linux/adv"
-	"github.com/currantlabs/ble/linux/gatt"
+	"github.com/chenkaie/ble"
+	"github.com/chenkaie/ble/linux/adv"
+	"github.com/chenkaie/ble/linux/gatt"
 	"github.com/pkg/errors"
 )
 
