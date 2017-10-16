@@ -11,6 +11,8 @@ import (
 	"github.com/raff/goble/xpc"
 	"golang.org/x/net/context"
 
+	"sync"
+
 	"github.com/chenkaie/ble"
 )
 
@@ -51,7 +53,8 @@ type Device struct {
 
 	rspc chan msg
 
-	conns map[string]*conn
+	conns    map[string]*conn
+	connLock sync.Mutex
 
 	// Only used in client/centralManager implementation
 	advHandler ble.AdvHandler
@@ -455,7 +458,9 @@ func (d *Device) HandleXpcEvent(event xpc.Dict, err error) {
 		default:
 			// Canceled by remote peripheral asynchronously.
 		}
+		d.connLock.Lock()
 		delete(d.conns, c.RemoteAddr().String())
+		d.connLock.Unlock()
 		close(c.done)
 
 	case evtCharacteristicRead:
@@ -494,11 +499,13 @@ func (d *Device) HandleXpcEvent(event xpc.Dict, err error) {
 func (d *Device) conn(m msg) *conn {
 	// Convert xpc.UUID to ble.UUID.
 	a := ble.MustParse(m.deviceUUID().String())
+	d.connLock.Lock()
 	c, ok := d.conns[a.String()]
 	if !ok {
 		c = newConn(d, a)
 		d.conns[a.String()] = c
 	}
+	d.connLock.Unlock()
 	return c
 }
 
